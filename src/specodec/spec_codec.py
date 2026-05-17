@@ -26,8 +26,8 @@ class SpecCodec(Generic[T]):
 # ---------------------------------------------------------------------------
 @dataclass
 class FormatEntry:
-    name: str                              # e.g. "json", "msgpack", "gron"
-    new_writer: Callable[[], SpecWriter]
+    name: str  # e.g. "json", "msgpack", "gron"
+    new_writer: Callable[..., SpecWriter]
     new_reader: Callable[[bytes], SpecReader]
 
 
@@ -53,16 +53,20 @@ class FormatRegistry:
 # Default registry
 # ---------------------------------------------------------------------------
 default_registry = FormatRegistry()
-default_registry.register(FormatEntry("json",    JsonWriter,    JsonReader))
-default_registry.register(FormatEntry("msgpack", MsgPackWriter, MsgPackReader))
-default_registry.register(FormatEntry("gron",    GronWriter,    GronReader))
+default_registry.register(FormatEntry("json", JsonWriter, JsonReader))  # type: ignore[arg-type]
+default_registry.register(FormatEntry("msgpack", MsgPackWriter, MsgPackReader))  # type: ignore[arg-type]
+default_registry.register(FormatEntry("gron", GronWriter, GronReader))  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------
 # dispatch / respond
 # ---------------------------------------------------------------------------
-def dispatch(codec: SpecCodec[T], body: bytes, format: str,
-             registry: FormatRegistry | None = None) -> T:
+def dispatch(
+    codec: SpecCodec[T],
+    body: bytes,
+    format: str,
+    registry: FormatRegistry | None = None,
+) -> T:
     reg = registry or default_registry
     fmt = reg.match(format)
     return codec.decode(fmt.new_reader(body))
@@ -71,11 +75,12 @@ def dispatch(codec: SpecCodec[T], body: bytes, format: str,
 @dataclass
 class RespondResult:
     body: bytes
-    name: str   # format name: "json" | "msgpack" | "gron"
+    name: str  # format name: "json" | "msgpack" | "gron"
 
 
-def respond(codec: SpecCodec[T], obj: T, format: str,
-            registry: FormatRegistry | None = None) -> RespondResult:
+def respond(
+    codec: SpecCodec[T], obj: T, format: str, registry: FormatRegistry | None = None
+) -> RespondResult:
     reg = registry or default_registry
     fmt = reg.match(format)
     w = fmt.new_writer()

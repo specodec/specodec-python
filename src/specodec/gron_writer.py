@@ -24,15 +24,24 @@ class GronWriter:
         r = []
         for c in s:
             o = ord(c)
-            if o == 0x22: r.append('\\"')
-            elif o == 0x5C: r.append("\\\\")
-            elif o == 0x08: r.append("\\b")
-            elif o == 0x0C: r.append("\\f")
-            elif o == 0x0A: r.append("\\n")
-            elif o == 0x0D: r.append("\\r")
-            elif o == 0x09: r.append("\\t")
-            elif o < 0x20: r.append(f"\\u{o:04x}")
-            else: r.append(c)
+            if o == 0x22:
+                r.append('\\"')
+            elif o == 0x5C:
+                r.append("\\\\")
+            elif o == 0x08:
+                r.append("\\b")
+            elif o == 0x0C:
+                r.append("\\f")
+            elif o == 0x0A:
+                r.append("\\n")
+            elif o == 0x0D:
+                r.append("\\r")
+            elif o == 0x09:
+                r.append("\\t")
+            elif o < 0x20:
+                r.append(f"\\u{o:04x}")
+            else:
+                r.append(c)
         return "".join(r)
 
     @staticmethod

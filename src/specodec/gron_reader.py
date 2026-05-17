@@ -17,7 +17,7 @@ class GronReader:
             if eq < 0:
                 continue
             path = line[:eq]
-            val = line[eq + 3:]
+            val = line[eq + 3 :]
             if val.endswith(";"):
                 val = val[:-1]
             self._lines.append((path, val))
@@ -32,16 +32,24 @@ class GronReader:
             if s[i] == "\\":
                 i += 1
                 c = s[i]
-                if c == '"': r.append('"')
-                elif c == "\\": r.append("\\")
-                elif c == "/": r.append("/")
-                elif c == "b": r.append("\b")
-                elif c == "f": r.append("\f")
-                elif c == "n": r.append("\n")
-                elif c == "r": r.append("\r")
-                elif c == "t": r.append("\t")
+                if c == '"':
+                    r.append('"')
+                elif c == "\\":
+                    r.append("\\")
+                elif c == "/":
+                    r.append("/")
+                elif c == "b":
+                    r.append("\b")
+                elif c == "f":
+                    r.append("\f")
+                elif c == "n":
+                    r.append("\n")
+                elif c == "r":
+                    r.append("\r")
+                elif c == "t":
+                    r.append("\t")
                 elif c == "u":
-                    r.append(chr(int(s[i + 1:i + 5], 16)))
+                    r.append(chr(int(s[i + 1 : i + 5], 16)))
                     i += 4
             else:
                 r.append(s[i])
@@ -51,28 +59,42 @@ class GronReader:
     @staticmethod
     def _b64(s: str) -> bytes:
         import base64
+
         return base64.b64decode(s)
 
     def read_string(self) -> str:
-        v = self._unescape(self._lines[self._cursor][1]); self._cursor += 1; return v
+        v = self._unescape(self._lines[self._cursor][1])
+        self._cursor += 1
+        return v
 
     def read_bool(self) -> bool:
-        v = self._lines[self._cursor][1] == "true"; self._cursor += 1; return v
+        v = self._lines[self._cursor][1] == "true"
+        self._cursor += 1
+        return v
 
     def read_int32(self) -> int:
-        v = int(self._lines[self._cursor][1]); self._cursor += 1; return v
+        v = int(self._lines[self._cursor][1])
+        self._cursor += 1
+        return v
 
     def read_int64(self) -> int:
-        v = int(self._unescape(self._lines[self._cursor][1])); self._cursor += 1; return v
+        v = int(self._unescape(self._lines[self._cursor][1]))
+        self._cursor += 1
+        return v
 
     def read_uint32(self) -> int:
-        v = int(self._lines[self._cursor][1]); self._cursor += 1; return v
+        v = int(self._lines[self._cursor][1])
+        self._cursor += 1
+        return v
 
     def read_uint64(self) -> int:
-        v = int(self._unescape(self._lines[self._cursor][1])); self._cursor += 1; return v
+        v = int(self._unescape(self._lines[self._cursor][1]))
+        self._cursor += 1
+        return v
 
     def read_float32(self) -> float:
-        v = self._lines[self._cursor][1]; self._cursor += 1
+        v = self._lines[self._cursor][1]
+        self._cursor += 1
         if v == '"NaN"':
             return float("nan")
         if v == '"Infinity"':
@@ -80,10 +102,11 @@ class GronReader:
         if v == '"-Infinity"':
             return float("-inf")
         f = float(v)
-        return struct.unpack('f', struct.pack('f', f))[0]
+        return struct.unpack("f", struct.pack("f", f))[0]
 
     def read_float64(self) -> float:
-        v = self._lines[self._cursor][1]; self._cursor += 1
+        v = self._lines[self._cursor][1]
+        self._cursor += 1
         if v == '"NaN"':
             return float("nan")
         if v == '"Infinity"':
@@ -92,20 +115,20 @@ class GronReader:
             return float("-inf")
         return float(v)
 
-    def read_float64(self) -> float:
-        v = self._lines[self._cursor][1]; self._cursor += 1
-        return -0.0 if v == "-0" else float(v)
-
     def read_null(self):
-        v = self._lines[self._cursor][1]; self._cursor += 1
+        v = self._lines[self._cursor][1]
+        self._cursor += 1
         if v != "null":
             raise ValueError("gron: expected null")
 
     def read_bytes(self) -> bytes:
-        v = self._b64(self._unescape(self._lines[self._cursor][1])); self._cursor += 1; return v
+        v = self._b64(self._unescape(self._lines[self._cursor][1]))
+        self._cursor += 1
+        return v
 
     def begin_object(self):
-        line = self._lines[self._cursor]; self._cursor += 1
+        line = self._lines[self._cursor]
+        self._cursor += 1
         self._ctx.append({"prefix": line[0], "type": "object"})
 
     def has_next_field(self) -> bool:
@@ -115,18 +138,19 @@ class GronReader:
         p = self._lines[self._cursor][0]
         if not p.startswith(pfx):
             return False
-        rem = p[len(pfx):]
+        rem = p[len(pfx) :]
         return "." not in rem and "[" not in rem
 
     def read_field_name(self) -> str:
         pfx = self._ctx[-1]["prefix"] + "."
-        return self._lines[self._cursor][0][len(pfx):]
+        return self._lines[self._cursor][0][len(pfx) :]
 
     def end_object(self):
         self._ctx.pop()
 
     def begin_array(self):
-        line = self._lines[self._cursor]; self._cursor += 1
+        line = self._lines[self._cursor]
+        self._cursor += 1
         self._ctx.append({"prefix": line[0], "type": "array", "index": -1})
 
     def has_next_element(self) -> bool:
@@ -145,13 +169,18 @@ class GronReader:
         self._ctx.pop()
 
     def is_null(self) -> bool:
-        return self._cursor < len(self._lines) and self._lines[self._cursor][1] == "null"
+        return (
+            self._cursor < len(self._lines) and self._lines[self._cursor][1] == "null"
+        )
 
     def skip(self):
-        sp = self._lines[self._cursor][0]; self._cursor += 1
+        sp = self._lines[self._cursor][0]
+        self._cursor += 1
         while self._cursor < len(self._lines):
             np = self._lines[self._cursor][0]
-            if len(np) > len(sp) and (np.startswith(sp + ".") or np.startswith(sp + "[")):
+            if len(np) > len(sp) and (
+                np.startswith(sp + ".") or np.startswith(sp + "[")
+            ):
                 self._cursor += 1
             else:
                 break

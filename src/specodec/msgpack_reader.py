@@ -89,7 +89,7 @@ class MsgPackReader:
             length = self._read_u32()
         else:
             raise SCodecError("internal", f"msgpack: expected string, got 0x{b:02X}")
-        s = self._buf[self._pos:self._pos + length].decode("utf-8")
+        s = self._buf[self._pos : self._pos + length].decode("utf-8")
         self._pos += length
         return s
 
@@ -119,15 +119,25 @@ class MsgPackReader:
             return self._read_u64()
         raise SCodecError("internal", f"msgpack: expected int, got 0x{b:02X}")
 
-    def read_int32(self) -> int: return int(self.read_int())
-    def read_int64(self) -> int: return int(self.read_int())
-    def read_uint32(self) -> int: return int(self.read_int()) & 0xFFFFFFFF
+    def read_int32(self) -> int:
+        return int(self.read_int())
+
+    def read_int64(self) -> int:
+        return int(self.read_int())
+
+    def read_uint32(self) -> int:
+        return int(self.read_int()) & 0xFFFFFFFF
+
     def read_uint64(self) -> int:
         b = self._read_byte()
-        if b <= 0x7F: return b
-        if b == 0xCC: return self._read_byte()
-        if b == 0xCD: return self._read_u16()
-        if b == 0xCE: return self._read_u32()
+        if b <= 0x7F:
+            return b
+        if b == 0xCC:
+            return self._read_byte()
+        if b == 0xCD:
+            return self._read_u16()
+        if b == 0xCE:
+            return self._read_u32()
         if b == 0xCF:
             return self._read_u64()
         raise SCodecError("internal", f"msgpack: expected uint64, got 0x{b:02X}")
@@ -166,20 +176,27 @@ class MsgPackReader:
 
     def read_float32(self) -> float:
         v = self.read_float()
-        return struct.unpack('f', struct.pack('f', v))[0]
-    def read_float64(self) -> float: return float(self.read_float())
+        return struct.unpack("f", struct.pack("f", v))[0]
+
+    def read_float64(self) -> float:
+        return float(self.read_float())
 
     def read_bytes(self) -> bytes:
         b = self._read_byte()
-        if b == 0xC4: length = self._read_byte()
-        elif b == 0xC5: length = self._read_u16()
-        elif b == 0xC6: length = self._read_u32()
-        else: raise SCodecError("internal", f"msgpack: expected bin, got 0x{b:02X}")
-        v = self._buf[self._pos:self._pos + length]
+        if b == 0xC4:
+            length = self._read_byte()
+        elif b == 0xC5:
+            length = self._read_u16()
+        elif b == 0xC6:
+            length = self._read_u32()
+        else:
+            raise SCodecError("internal", f"msgpack: expected bin, got 0x{b:02X}")
+        v = self._buf[self._pos : self._pos + length]
         self._pos += length
         return bytes(v)
 
-    def read_enum(self) -> str: return self.read_string()
+    def read_enum(self) -> str:
+        return self.read_string()
 
     def read_bool(self) -> bool:
         b = self._read_byte()
@@ -216,12 +233,24 @@ class MsgPackReader:
             self._pos += b & 0x1F
             return
         skip_map = {
-            0xC0: 0, 0xC2: 0, 0xC3: 0,
-            0xCC: 1, 0xD0: 1,
-            0xCD: 2, 0xD1: 2,
-            0xCE: 4, 0xD2: 4, 0xCA: 4,
-            0xCF: 8, 0xD3: 8, 0xCB: 8,
-            0xD4: 2, 0xD5: 3, 0xD6: 5, 0xD7: 9, 0xD8: 17,
+            0xC0: 0,
+            0xC2: 0,
+            0xC3: 0,
+            0xCC: 1,
+            0xD0: 1,
+            0xCD: 2,
+            0xD1: 2,
+            0xCE: 4,
+            0xD2: 4,
+            0xCA: 4,
+            0xCF: 8,
+            0xD3: 8,
+            0xCB: 8,
+            0xD4: 2,
+            0xD5: 3,
+            0xD6: 5,
+            0xD7: 9,
+            0xD8: 17,
         }
         if b in skip_map:
             self._pos += skip_map[b]
