@@ -47,7 +47,7 @@ console.log("\n=== Step 4: Generate test runner ===");
 run(`cd ${__dir} && VEC_DIR=${VEC_DIR} node generate_emit_runner.mjs`);
 
 console.log("\n=== Step 5: Type check ===");
-run(`cd ${__dir} && python -m mypy ${GENERATED} emit/ ../../src/ --ignore-missing-imports`);
+run(`cd ${__dir} && mypy ${GENERATED} emit/ ../../src/ --ignore-missing-imports`);
 
 console.log("\n=== Step 6: Run tests ===");
 if (existsSync(OUT_DIR)) rmSync(OUT_DIR, { recursive: true });
