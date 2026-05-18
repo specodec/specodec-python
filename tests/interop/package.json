@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "@specodec/typespec-emitter-core": "^1.0.0",
-    "@specodec/typespec-emitter-python": "^1.0.4",
+    "@specodec/typespec-emitter-python": "^1.0.11",
     "@typespec/compiler": "^1.12.0"
   },
   "devDependencies": {
