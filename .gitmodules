@@ -1,3 +1,0 @@
-[submodule "tests/interop/.tests-cache"]
-	path = tests/interop/.tests-cache
-	url = http://10.199.64.20:3000/specodec/tests.git

@@ -4,7 +4,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const CACHE = join(__dir, ".tests-cache");
+const VEC_DIR = join(__dir, "vectors");
 const GENERATED = join(__dir, "src", "generated");
 const OUT_DIR = join(__dir, "output");
 
@@ -17,46 +17,38 @@ function ensure(dir) {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
-console.log("\n=== Step 0: Install dependencies ===");
+console.log("\n=== Step 1: Install dependencies ===");
 run(`cd ${__dir} && npm install`);
 
-console.log('\n=== Step 2: Using cached .tests-cache ===');
-
-console.log("\n=== Step 2: Generate vectors ===");
-run(`cd ${CACHE} && npm install`);
-run(`cd ${CACHE} && node gen_types.mjs`);
-
-const VEC_DIR = join(CACHE, "vectors");
-
-console.log("\n=== Step 3: Generate emit code ===");
+console.log("\n=== Step 2: Generate emit code ===");
 if (existsSync(GENERATED)) rmSync(GENERATED, { recursive: true });
 ensure(GENERATED);
 
-run(`cd ${__dir} && node_modules/.bin/tsp compile ${CACHE}/alltypes.tsp --emit=@specodec/typespec-emitter-python \
+run(`cd ${__dir} && node_modules/.bin/tsp compile ${__dir}/alltypes.tsp --emit=@specodec/typespec-emitter-python \
   --option @specodec/typespec-emitter-python.emitter-output-dir=${GENERATED}`);
 
 const pyFiles = readdirSync(GENERATED).filter(f => f.endsWith(".py"));
 if (pyFiles.length > 0) {
-  console.log("  ✓ Generated " + pyFiles.join(", "));
+  console.log("  Generated " + pyFiles.join(", "));
 } else {
   console.error("  FAIL: No generated Python files");
   process.exit(1);
 }
 
-console.log("\n=== Step 4: Generate test runner ===");
+console.log("\n=== Step 3: Generate test runner ===");
 run(`cd ${__dir} && VEC_DIR=${VEC_DIR} node generate_emit_runner.mjs`);
 
-console.log("\n=== Step 5: Type check ===");
+console.log("\n=== Step 4: Type check ===");
 run(`cd ${__dir} && mypy ${GENERATED} emit/ ../../src/ --ignore-missing-imports`);
+
+console.log("\n=== Step 5: Install runtime ===");
+run(`pip install --break-system-packages --index-url http://10.199.64.20:30000/api/packages/specodec/pypi/simple/ --trusted-host 10.199.64.20 specodec-runtime-python==1.0.0`);
 
 console.log("\n=== Step 6: Run tests ===");
 if (existsSync(OUT_DIR)) rmSync(OUT_DIR, { recursive: true });
 ensure(OUT_DIR);
 
-// Fetch runtime from Forgejo PyPI
-run(`pip install --break-system-packages --index-url http://10.199.64.20:3000/api/packages/specodec/pypi/simple/ --trusted-host 10.199.64.20 specodec-runtime-python==1.0.0`);
-
-try { run(`cd ${__dir} && VEC_DIR=${VEC_DIR} OUT_DIR=${OUT_DIR} python emit/main.py`); } catch (e) { console.log("Python tests completed (some failures expected)"); }
+try { run(`cd ${__dir} && VEC_DIR=${VEC_DIR} OUT_DIR=${OUT_DIR} python emit/main.py`); } catch (e) { console.log("Python tests completed"); }
 
 console.log('\n=== Step 7: Compare output ===');
 const manifest = JSON.parse(readFileSync(join(VEC_DIR, 'manifest.json'), 'utf-8'));
