@@ -41,16 +41,15 @@ run(`cd ${__dir} && VEC_DIR=${VEC_DIR} node generate_emit_runner.mjs`);
 console.log("\n=== Step 4: Type check ===");
 run(`cd ${__dir} && mypy ${GENERATED} emit/ ../../src/ --ignore-missing-imports`);
 
-console.log("\n=== Step 5: Install runtime ===");
-run(`pip install --break-system-packages --index-url http://10.199.64.20:30000/api/packages/specodec/pypi/simple/ --trusted-host 10.199.64.20 specodec-runtime-python==1.0.0`);
+console.log("\n=== Step 4: Runtime setup ===");
 
-console.log("\n=== Step 6: Run tests ===");
+console.log("\n=== Step 5: Run tests ===");
 if (existsSync(OUT_DIR)) rmSync(OUT_DIR, { recursive: true });
 ensure(OUT_DIR);
 
 try { run(`cd ${__dir} && VEC_DIR=${VEC_DIR} OUT_DIR=${OUT_DIR} python emit/main.py`); } catch (e) { console.log("Python tests completed"); }
 
-console.log('\n=== Step 7: Compare output ===');
+console.log('\n=== Step 6: Compare output ===');
 const manifest = JSON.parse(readFileSync(join(VEC_DIR, 'manifest.json'), 'utf-8'));
 let match = 0, mismatch = 0;
 
